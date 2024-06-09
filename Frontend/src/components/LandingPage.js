@@ -3,7 +3,6 @@ import axios from "axios";
 import BreweryList from "./BreweryList";
 import CascadingAutocomplete from "./CascadingAutocomplete";
 import "./LandingPage.css";
-// import Pagination from './Pagination';
 
 const LandingPage = () => {
   const [breweries, setBreweries] = useState([]);

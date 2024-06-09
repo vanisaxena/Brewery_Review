@@ -1,43 +1,46 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from "axios"
-import './Register.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import "./Register.css";
+import { serverURL } from "../helper/helper";
 
 const Register = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  async function handleRegister(e){
+  async function handleRegister(e) {
     e.preventDefault();
-    
-    try{
-        await axios.post("http://localhost:8080/register", {
-            email, password, name
+
+    try {
+      await axios
+        .post(`${serverURL}/register`, {
+          email,
+          password,
+          name,
         })
         .then((res) => {
-          if(res.data === "exist"){
-            alert("Existing User")
-            navigate("/login")
-          } else if(res.data === "notexist") {
-            alert("Successfully registered.")
-            navigate("/login")
+          if (res.data === "exist") {
+            alert("Existing User");
+            navigate("/login");
+          } else if (res.data === "notexist") {
+            alert("Successfully registered.");
+            navigate("/login");
           }
         })
-        .catch(e => {
-          alert("Wrong Details")
-          console.log(e)
-        })
+        .catch((e) => {
+          alert("Wrong Details");
+          console.log(e);
+        });
+    } catch (e) {
+      console.log(e);
     }
-    catch(e){
-        console.log(e)
-    }
-};
+  }
 
-  function goToLogin(){
-    navigate("/login")
+  function goToLogin() {
+    navigate("/login");
   }
 
   return (
@@ -50,7 +53,7 @@ const Register = () => {
           <input
             type="string"
             id="name"
-            placeholder='Enter Name'
+            placeholder="Enter Name"
             onChange={(e) => setName(e.target.value)}
           />
         </div>
@@ -60,7 +63,7 @@ const Register = () => {
             type="email"
             id="email"
             value={email}
-            placeholder='Enter Mail Id'
+            placeholder="Enter Mail Id"
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
@@ -70,14 +73,15 @@ const Register = () => {
             type="password"
             id="password"
             value={password}
-            placeholder='Enter Password'
+            placeholder="Enter Password"
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <button className='register-button' type="submit">Register</button>
-        <button className="nav_register" 
-          onClick={goToLogin}>
-            Already, Registered.
+        <button className="register-button" type="submit">
+          Register
+        </button>
+        <button className="nav_register" onClick={goToLogin}>
+          Already, Registered.
         </button>
       </form>
     </div>

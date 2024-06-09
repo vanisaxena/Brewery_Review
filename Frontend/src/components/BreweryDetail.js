@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import "./BreweryDetail.css";
+import { serverURL } from "../helper/helper";
 
 const BreweryDetail = () => {
   const { id } = useParams();
@@ -18,7 +19,7 @@ const BreweryDetail = () => {
         const response = await axios.get(
           `https://api.openbrewerydb.org/v1/breweries/${id}`
         );
-        const oldRating = await axios.post("http://localhost:8080/getrating", {
+        const oldRating = await axios.post(`${serverURL}/getrating`, {
           id: id,
         });
         setBrewery(response.data);
@@ -48,7 +49,7 @@ const BreweryDetail = () => {
     e.preventDefault();
     try {
       await axios
-        .post("http://localhost:8080/setRating", {
+        .post(`${serverURL}/setRating`, {
           id: id,
           rating: new_rating,
           text_rating: text_rating,

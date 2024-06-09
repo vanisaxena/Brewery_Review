@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { serverURL } from "../helper/helper";
 import "./Login.css";
 
 const Login = () => {
@@ -14,7 +15,7 @@ const Login = () => {
 
     try {
       await axios
-        .post("http://localhost:8080/login", {
+        .post(`${serverURL}/login`, {
           email,
           password,
         })
