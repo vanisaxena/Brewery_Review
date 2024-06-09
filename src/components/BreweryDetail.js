@@ -1,125 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Card, CardContent, Typography, Grid, Link, TextField, Button, Rating, CircularProgress } from '@mui/material';
-import { useParams } from 'react-router-dom'; // Import useParams hook
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import "./BreweryDetail.css";
 
 const BreweryDetail = () => {
-    const { id } = useParams(); // Access route parameters using useParams hook
+  const { id } = useParams();
+  const [brewery, setBrewery] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [new_rating, set_new_rating] = useState(-1);
+  const [text_rating, set_text_rating] = useState(null);
 
-    const [brewery, setBrewery] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [rating, setRating] = useState(0);
-    const [review, setReview] = useState('');
-    const [submittedRating, setSubmittedRating] = useState(null);
-
-    useEffect(() => {
-        const fetchBrewery = async () => {
-            try {
-                const response = await axios.get(`https://api.openbrewerydb.org/v1/breweries/${id}`);
-                setBrewery(response.data);
-                setLoading(false);
-            } catch (err) {
-                setError('Error fetching data, please try again.');
-                setLoading(false);
-            }
-        };
-
-        const timer = setTimeout(() => {
-            fetchBrewery();
-        }, 2000); // Wait for 5 seconds before fetching data
-
-        return () => clearTimeout(timer); // Cleanup function to clear timer
-
-    }, [id]); // Use id from useParams in the dependency array
-
-    const handleRatingChange = (event, newValue) => {
-        setRating(newValue);
-    };
-
-    const handleReviewChange = (event) => {
-        setReview(event.target.value);
-    };
-
-    async function handleRatingSubmit(e){
-        e.preventDefault();
-        e.preventDefault();
-        setSubmittedRating(rating);
-        // Submit review logic here
-
-        try{
-            await axios.post("http://localhost:8080/ratingchange", {
-                id, rating
-            })
-            .then((res) => {
-                if(res.data === "updated"){
-                    alert("Rating Updated")
-                } else if(res.data === "First-Rating") {
-                    alert("First Rating for this Beer.")
-                }
-            })
-            .catch(e => {
-                alert("error")
-                alert("Wrong Id ig")
-                console.log(e)
-            })
-        }
-        catch(e){
-            console.log(e)
-        }
-
-        // After submit
-        setRating(0); // Reset rating after submission
-        setReview(''); // Reset review after submission
-    };
-
-    if (loading) {
-        return (
-            <Grid container justifyContent="center">
-                <CircularProgress />
-            </Grid>
+  useEffect(() => {
+    const fetchBrewery = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.openbrewerydb.org/v1/breweries/${id}`
         );
+        const oldRating = await axios.post("http://localhost:8080/getrating", {
+          id: id,
+        });
+        setBrewery(response.data);
+        setLoading(false);
+        setRating(oldRating.data);
+      } catch (err) {
+        setError("Error fetching data, please try again.");
+        setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      fetchBrewery();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [id]);
+
+  function handleRatingChange(e) {
+    set_new_rating(e.target.value);
+  }
+  function handleTextChange(e) {
+    set_text_rating(e.target.value);
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios
+        .post("http://localhost:8080/setRating", {
+          id: id,
+          rating: new_rating,
+          text_rating: text_rating,
+        })
+        .then((res) => {
+          if (res.data === "First-Rating") {
+            alert("Thankyou, for your **First** Rating");
+          } else if (res.data === "updated") {
+            alert("Thankyou, for your Rating");
+          }
+        })
+        .catch((e) => {
+          alert("Wrong Id");
+          console.log(e);
+        });
+    } catch (e) {
+      console.log(e);
     }
+  };
+  if (!brewery) return <p>Loading...</p>;
 
-    if (error) {
-        return <p>{error}</p>;
-    }
+  return (
+    <div className="brewery-details-card">
+      <h2>{brewery.name}</h2>
+      <p>
+        <strong>Address:</strong> {brewery.street}, {brewery.city},{" "}
+        {brewery.state}, {brewery.country}, {brewery.postal_code}
+      </p>
+      <p>
+        <strong>Phone:</strong> {brewery.phone}
+      </p>
+      <p>
+        <strong>Website:</strong>{" "}
+        <a href={brewery.website_url} target="_blank" rel="noopener noreferrer">
+          {brewery.website_url}
+        </a>
+      </p>
+      <p>
+        <strong>Type:</strong> {brewery.brewery_type}
+      </p>
+      <p>
+        <strong>Rating: </strong> {rating}* rated ever
+      </p>
 
-    return (
-        <Grid container justifyContent="center" spacing={3}>
-            <Grid item xs={12} sm={6}>
-                <Card elevation={4}>
-                    <CardContent>
-                        <Typography variant="h4" gutterBottom>{brewery.name}</Typography>
-                        <Typography variant="body1">Type: {brewery.brewery_type}</Typography>
-                        <Typography variant="body1">Address: {brewery.address_1}, {brewery.city}, {brewery.state}, {brewery.postal_code}</Typography>
-                        <Typography variant="body1">Website: <Link href={brewery.website_url} target="_blank" rel="noopener noreferrer">{brewery.website_url}</Link></Typography>
-
-                        <Typography variant="h5" gutterBottom>Rate this Brewery</Typography>
-                        <Rating
-                            name="rating"
-                            value={rating}
-                            onChange={handleRatingChange}
-                            precision={1}
-                            size="large"
-                        />
-                        <Typography variant="body1">Review:</Typography>
-                        <TextField
-                            multiline
-                            rows={4}
-                            value={review}
-                            onChange={handleReviewChange}
-                            variant="outlined"
-                            fullWidth
-                        />
-                        <Button type="submit" variant="contained" color="primary" onClick={handleRatingSubmit} sx={{ marginTop: 2 }}>Submit</Button>
-
-                        {submittedRating && <Typography variant="body1">Submitted Rating: {submittedRating}</Typography>}
-                    </CardContent>
-                </Card>
-            </Grid>
-        </Grid>
-    );
+      <h2>Want to Review?</h2>
+      <p>
+        <input
+          type="number"
+          min={0}
+          max={5}
+          value={new_rating || ""}
+          onChange={handleRatingChange}
+        />
+      </p>
+      <input
+        type="text"
+        max={50}
+        value={text_rating || ""}
+        onChange={handleTextChange}
+      />
+      <br />
+      <button
+        disabled={new_rating === -1 || text_rating === null}
+        onClick={handleSubmit}
+      >
+        Submit Review
+      </button>
+    </div>
+  );
 };
 
 export default BreweryDetail;
